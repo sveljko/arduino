@@ -1,4 +1,4 @@
-#include <ArduinoUnitTests.h>
+/* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include "../test_stubs/Ethernet.h"
 
 #define _PubNub_arduino_stubs__h_
@@ -15,6 +15,7 @@ static unsigned long m_MicrosDelay;
         client.mGodmodeMicrosDelay = &m_MicrosDelay;                       \
     } while (0)
 #include "../PubNubDefs.h"
+#include <ArduinoUnitTests.h>
 
 
 unittest_setup()

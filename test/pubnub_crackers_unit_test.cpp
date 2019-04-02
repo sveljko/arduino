@@ -1,6 +1,7 @@
-#include <ArduinoUnitTests.h>
+/* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include "../test_stubs/Ethernet.h"
 #include "../PubNubDefs.h"
+#include <ArduinoUnitTests.h>
 
 
 unittest_setup()
