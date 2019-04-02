@@ -1,7 +1,7 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include <ArduinoUnitTests.h>
 #include "../test_stubs/Ethernet.h"
-#if defined(_WIN32)
+#if defined(__CYGWIN__)
 #define PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP
 #endif
 #include "../PubNubDefs.h"

@@ -9,7 +9,7 @@ static String* m_DataIn;
 /* delay between received bytes in microseconds */ 
 static unsigned long m_MicrosDelay;
 
-#if defined(_WIN32)
+#if defined(__CYGWIN__)
 #define PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP
 #endif
 #define TRANSACTION_UNDER_TEST()                                           \
