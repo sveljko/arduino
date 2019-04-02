@@ -20,6 +20,7 @@
 #define DBGprintln(x...)
 #endif
 
+
 /* Under some board support libraries, like ESP8266,
    the (de-facto) standard library functions are missing.
    To use Pubnub library with those boards, you need to
@@ -118,8 +119,8 @@ class PubSubClient : public PubNub_BASE_CLIENT {
 public:
     PubSubClient()
         : PubNub_BASE_CLIENT()
-        , json_enabled(false)
         , d_avail(0)
+        , json_enabled(false)
     {
         strcpy(timetoken, "0");
     }
@@ -154,6 +155,7 @@ public:
     int read(uint8_t* buf, size_t size)
     {
         int len = PubNub_BASE_CLIENT::read(buf, size);
+
         if (d_avail > len) {
             if (len > 0) {
                 d_avail -= len;
@@ -229,64 +231,6 @@ private:
 
 class PubNub {
 public:
-
-    /* Helper constructors for PubNub_BASE_CLIENT that has
-       constructors with parameters. This would be nicer to do
-       w/perfect forwarding, but we want to use older C++ features for
-       better portability (this should work w/C++98).
-
-       You need to pass parameter for each of the three clients that
-       we use - for publish transaction, for subscribe transaction and
-       for history transaction. Of course, if you want to use the same
-       ones, then you can pass the same parameters.
-     */
-
-    template <typename P>
-    PubNub(P p_for_publish, P p_for_subscribe, P p_for_history)
-    : publish_client(p_for_publish)
-    , history_client(p_for_history)
-    , subscribe_client(p_for_subscribe) {
-    }
-    template <typename P>
-    PubNub(P& p_for_publish, P& p_for_subscribe, P& p_for_history)
-    : publish_client(p_for_publish)
-    , history_client(p_for_history)
-    , subscribe_client(p_for_subscribe) {
-    }
-
-    template <typename FIRST, typename SECOND>
-    PubNub(FIRST first_for_publish, SECOND second_for_publish, 
-	 FIRST first_for_subscribe, SECOND second_for_subscribe, 
-	 FIRST first_for_history, SECOND second_for_history)
-    : publish_client(first_for_publish, second_for_publish)
-    , history_client(first_for_history, second_for_history)
-    , subscribe_client(first_for_subscribe, second_for_subscribe) {
-    }
-    template <typename FIRST, typename SECOND>
-    PubNub(FIRST& first_for_publish, SECOND second_for_publish, 
-	 FIRST& first_for_subscribe, SECOND second_for_subscribe, 
-	 FIRST& first_for_history, SECOND second_for_history)
-    : publish_client(first_for_publish, second_for_publish)
-    , history_client(first_for_history, second_for_history)
-    , subscribe_client(first_for_subscribe, second_for_subscribe) {
-    }
-    template <typename FIRST, typename SECOND>
-    PubNub(FIRST first_for_publish, SECOND& second_for_publish, 
-	 FIRST first_for_subscribe, SECOND& second_for_subscribe, 
-	 FIRST first_for_history, SECOND& second_for_history)
-    : publish_client(first_for_publish, second_for_publish)
-    , history_client(first_for_history, second_for_history)
-    , subscribe_client(first_for_subscribe, second_for_subscribe) {
-    }
-    template <typename FIRST, typename SECOND>
-    PubNub(FIRST& first_for_publish, SECOND& second_for_publish, 
-	 FIRST& first_for_subscribe, SECOND& second_for_subscribe, 
-	 FIRST& first_for_history, SECOND& second_for_history)
-    : publish_client(first_for_publish, second_for_publish)
-    , history_client(first_for_history, second_for_history)
-    , subscribe_client(first_for_subscribe, second_for_subscribe) {
-    }
-
     /**
      * Init the Pubnub Client API
      *
@@ -312,6 +256,7 @@ public:
         d_auth                        = 0;
         d_last_http_status_code_class = http_scc_unknown;
         set_port(http_port);
+        return true;
     }
 
     /**
@@ -496,7 +441,7 @@ private:
 
 #if defined(__AVR)
 #include <avr/pgmspace.h>
-#else
+#elif !defined(strncasecmp_P)
 #define strncasecmp_P(a, b, c) strncasecmp(a, b, c)
 #endif
 
@@ -730,6 +675,9 @@ inline PubNonSubClient* PubNub::publish(const char* channel,
         have_param = 1;
     }
 
+#if defined(_PubNub_arduino_stubs__h_)
+    TRANSACTION_UNDER_TEST();
+#endif    
     enum PubNub::PubNub_BH ret =
         this->_request_bh(client, t_start, timeout, have_param ? '&' : '?');
     switch (ret) {
@@ -750,6 +698,7 @@ inline PubNonSubClient* PubNub::publish(const char* channel,
         }
         return 0;
     }
+    return 0;
 }
 
 
@@ -786,7 +735,9 @@ inline PubSubClient* PubNub::subscribe(const char* channel, int timeout)
         client.print(d_auth);
         have_param = 1;
     }
-
+#if defined(_PubNub_arduino_stubs__h_)
+    TRANSACTION_UNDER_TEST();
+#endif    
     enum PubNub::PubNub_BH ret =
         this->_request_bh(client, t_start, timeout, have_param ? '&' : '?');
     switch (ret) {
@@ -837,6 +788,7 @@ inline PubSubClient* PubNub::subscribe(const char* channel, int timeout)
         }
         return 0;
     }
+    return 0;
 }
 
 
@@ -860,6 +812,9 @@ inline PubNonSubClient* PubNub::history(const char* channel, int limit, int time
     client.print("/0/");
     client.print(limit, DEC);
 
+#if defined(_PubNub_arduino_stubs__h_)
+    TRANSACTION_UNDER_TEST();
+#endif    
     enum PubNub::PubNub_BH ret = this->_request_bh(client, t_start, timeout, '?');
     switch (ret) {
     case PubNub_BH_OK:
@@ -879,6 +834,7 @@ inline PubNonSubClient* PubNub::history(const char* channel, int limit, int time
         }
         return 0;
     }
+    return 0;
 }
 
 /** A helper that "cracks" the messages from an array of them.
@@ -975,8 +931,10 @@ public:
                 if (0 == d_bracket_level) {
                     d_state = done;
                 }
-                else if (--d_bracket_level == 0) {
-                    d_state = ground_zero;
+                else {
+                    if (--d_bracket_level == 0) {
+                        d_state = ground_zero;
+                    }
                     msg.concat(c);
                 }
                 break;
@@ -984,6 +942,10 @@ public:
                 msg.concat(c);
                 break;
             }
+            break;
+        case malformed:
+        case done:
+        default:
             break;
         }
     }
@@ -1021,7 +983,7 @@ public:
     }
 
     /** Low-level interface, handles one incoming/response character
-        at a time. To see if a message has be "cracked out" of the
+        at a time. To see if a message has been "cracked out" of the
         response, use `message_complete()`.
     */
     void handle(char c, String& msg)
@@ -1042,6 +1004,10 @@ public:
                 d_state = malformed;
                 break;
             }
+            break;
+        case malformed:
+        case done:
+        default:
             break;
         }
     }
@@ -1265,6 +1231,9 @@ public:
                 d_state = done;
             }
             break;
+        case done:
+        default:
+            break;
         }
     }
 
@@ -1343,6 +1312,7 @@ public:
         case done:
             return "Done.";
         }
+        return "!?!";
     }
     enum { MAX_DESCRIPTION = 50, MAX_TIMESTAMP = 20 };
 
@@ -1430,9 +1400,9 @@ inline enum PubNub::PubNub_BH PubNub::_request_bh(PubNub_BASE_CLIENT& client,
              * Transfer-Encoding: chunked (or \r\n) */
             const static char chunked_str[] = "Transfer-Encoding: chunked\r\n";
 
-            char line[sizeof(chunked_str)]; /* Not NUL-terminated! */
-            int  linelen = 0;
-            char ch      = 0;
+            char     line[sizeof(chunked_str)]; /* Not NUL-terminated! */
+            unsigned linelen = 0;
+            char     ch      = 0;
             do {
                 WAIT();
                 ch              = client.read();

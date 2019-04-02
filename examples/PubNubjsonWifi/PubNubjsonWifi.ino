@@ -1,70 +1,103 @@
 /*
-  PubNub sample JSON-parsing client
-
+  PubNub sample JSON-parsing client with WiFi support
+  This combines two sketches: the PubNubJson example of PubNub library
+  and the WifiWebClientRepeating example of the WiFi library.
   This sample client will properly parse JSON-encoded PubNub subscription
   replies using the ArduinoJson library(v6.10). It will send a simple message, then
   properly parsing and inspecting a subscription message received back.
 
   Circuit:
-  * Ethernet shield attached to pins 10, 11, 12, 13
+  * Wifi shield attached to pins 10, 11, 12, 13
   * (Optional) Analog sensors attached to analog pin.
   * (Optional) LEDs to be dimmed attached to PWM pins 8 and 9.
+
+  Please refer to the PubNubJson example description for some important
+  notes, especially regarding memory saving on Arduino Uno/Duemilanove.
+  You can also save some RAM by not using WiFi password protection.
 
   Note that due to use of the ArduinoJSON library, this sketch is more memory
   sensitive than the others. In order to be able to use it on the boards
   based on ATMega328, some special care is needed. Memory saving tips:
 
-  (i) Remove myI, dnsI from the sketch unless you need them.
-
-  (ii) In the file hardware/arduino/cores/arduino/HardwareSerial.cpp
+  (i) In the file hardware/arduino/cores/arduino/HardwareSerial.cpp
   which should be part of your Arduino installation, decrease SERIAL_BUFFER_SIZE
   from 64 to 16 or even smaller value (depends on your Serial usage).
 
-  (iii) Look for other memory-saving tips in Arduino docs and various Arduino
+  (ii) Look for other memory-saving tips in Arduino docs and various Arduino
   info sites/forums.
-
+  
+//  created 30 May 2013
+//  by Petr Baudis
+//  https://github.com/pubnub/pubnub-api/tree/master/arduino
   This code is in the public domain.
   */
 
 #include <SPI.h>
-#include <Ethernet.h>
+#include <WiFi.h>
+#define PubNub_BASE_CLIENT WiFiClient
 #include <PubNub.h>
 
 #include <ArduinoJson.h>
 
 using namespace ArduinoJson;
 
-
 // Some Ethernet shields have a MAC address printed on a sticker on the shield;
 // fill in that address here, or choose your own at random:
 const static byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-// Memory saving tip: remove myI and dnsI from your sketch if you
-// are content to rely on DHCP autoconfiguration.
-IPAddress myI(10, 42, 0, 2);
-IPAddress dnsI(8, 8, 8, 8);
+static char ssid[] = "Odisej";    // your network SSID (name)
+static char pass[] = "svetidjordje"; // your network password
+//static int keyIndex = 0;               // your network key Index number (needed only for WEP)
 
-const static char pubkey[]  = "demo";
-const static char subkey[]  = "demo";
+const static char pubkey[] = "demo";
+const static char subkey[] = "demo";
 const static char channel[] = "hello_world";
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial.println("Serial set up");
+	  Serial.begin(115200);
+	  Serial.println("Serial set up");
 
-    Ethernet.begin((byte*)mac, myI, dnsI);
-    Serial.println("Ethernet set up");
+#if defined(ARDUINO_ARCH_ESP32)
+    // attempt to connect using WPA2 encryption:
+    Serial.println("Attempting to connect to WPA network...");  
+    WiFi.begin(ssid, pass);
+    
+    // Wait until connected.
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.println("Connecting to WiFi..");
+    }
+#else
+	  int status;
 
-    PubNub.begin(pubkey, subkey);
-    Serial.println("PubNub set up");
+    if (WiFi.status() == WL_NO_SHIELD) {
+        Serial.println("WiFi shield not present");
+        while(true); // stop
+    }
+	  // attempt to connect to Wifi network:
+	  do {
+		    Serial.print("WiFi connecting to SSID: ");
+		    Serial.println(ssid);
+		    // Connect to the network. Uncomment whichever line is right for you:
+		    //status = WiFi.begin(ssid); // open network
+		    //status = WiFi.begin(ssid, keyIndex, key); // WEP network
+		    status = WiFi.begin(ssid, pass); // WPA / WPA2 Personal network
+ 	  } while (status != WL_CONNECTED);
+#endif /* defined(ARDUINO_ARCH_ESP32) */
+	  Serial.println("WiFi set up");
+    Serial.print("WL_CONNECTED=");
+    Serial.println(WL_CONNECTED);
+
+	  PubNub.begin(pubkey, subkey);
+	  Serial.println("PubNub set up");
 }
 
 JsonObject createMessage(JsonDocument jd)
 {
     JsonObject msg          = jd.to<JsonObject>();
     JsonObject sender       = msg.createNestedObject("sender");
-    
+
     sender["name"]          = "Arduino";
     sender["mac_last_byte"] = mac[5];
 
@@ -75,7 +108,6 @@ JsonObject createMessage(JsonDocument jd)
 
     return msg;
 }
-
 /* Process message like: { "pwm": { "8": 0, "9": 128 } } */
 void processPwmInfo(JsonObject item)
 {
@@ -156,8 +188,6 @@ void dumpMessage(Stream& s, JsonArray response)
 
 void loop()
 {
-    Ethernet.maintain();
-
     /** Additional data for copying strings */
     int const slack = 100;
     /** Max expected mesasges in a subscribe response */
@@ -169,36 +199,65 @@ void loop()
     StaticJsonDocument<capacity> pubjd;
 
     Serial.println("=====================================================");
-    /* Publish */
+	  /* Publish */
     {
-        Serial.print("publishing a message: ");
+ 	      Serial.print("publishing a message: ");
         char output[128];
 
+        pubjd.clear();
         serializeJson(createMessage(pubjd), output);
         Serial.println(output);
 
-        auto client = PubNub.publish(channel, output);
-        if (!client) {
-            Serial.println("publishing error");
-            delay(1000);
-            return;
+ 	      auto client = PubNub.publish(channel, output);
+       	if (!client) {
+		        Serial.println("publishing error");
+		        delay(1000);
+		        return;
+	      }
+	      if (PubNub.get_last_http_status_code_class() != PubNub::http_scc_success) {
+            Serial.print("Got HTTP status code error from PubNub, class: ");
+            Serial.print(PubNub.get_last_http_status_code_class(), DEC);
         }
-        /* If you wish, you could parse the response here. */
-        client->stop();
+        while (client->available()) {
+            Serial.write(client->read());
+        }
+	      client->stop();
+        Serial.println("--publish--");
     }
-    /* Subscribe and load reply */
+	  /* Subscribe and load reply */
     {
-        Serial.println("waiting for a message (subscribe)");
-        PubSubClient* subclient = PubNub.subscribe(channel);
-        if (!subclient) {
-            Serial.println("subscription error");
-            delay(1000);
-            return;
+        String msg;
+        
+	      Serial.println("waiting for a message (subscribe)");
+	      PubSubClient* subclient = PubNub.subscribe(channel);
+	      if (!subclient) {
+		        Serial.println("subscription error");
+		        delay(1000);
+		        return;
+	      }
+        if (PubNub.get_last_http_status_code_class() != PubNub::http_scc_success) {
+            Serial.print("Got HTTP status code error from PubNub, class: ");
+            Serial.print(PubNub.get_last_http_status_code_class(), DEC);
         }
-
+/*
+        SubscribeCracker ritz(subclient);
+//
+        Serial.println("-------> Napravio kraker 'ritz' !");
+//
+        while (!ritz.finished()) {
+            ritz.get(msg);
+            if (msg.length() > 0) {
+//
+                Serial.print("-------> Poruka:");
+                Serial.println(msg.c_str());
+//
+            }
+        }
+*/
+	      /* Parse */
         /* This is less code, but, requires "guessing" how
            many messages will there be in a response, otherwise
-           the ArduinoJson document will not be large enough.
+           the ArduinoJson buffer will not be large enough.
         */
         pubjd.clear();
         auto error = deserializeJson(pubjd, *subclient);
@@ -214,13 +273,13 @@ void loop()
             ArduinoJson, where the capacity could be precisely
             `json_elem_size` (assuming you do get the message you are
             expecting).
-
-            Of course, if you are comfortable with using
-            DynamicJsonBuffer, then all this discussion about the
-            static buffer is pointless.
         */
+//
+        Serial.print("timetoken=");
+        Serial.println(subclient->server_timetoken());
+//
         subclient->stop();
         Serial.println("--subscribe--");
     }
-    delay(10000);
+  	delay(10000);
 }
