@@ -441,7 +441,7 @@ private:
 
 #if defined(__AVR)
 #include <avr/pgmspace.h>
-#elif !defined(strncasecmp_P)
+#elif !defined(strncasecmp_P) || defined(PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP)
 #define strncasecmp_P(a, b, c) strncasecmp(a, b, c)
 #endif
 

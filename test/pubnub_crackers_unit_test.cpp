@@ -1,7 +1,10 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "../test_stubs/Ethernet.h"
-#include "../PubNubDefs.h"
 #include <ArduinoUnitTests.h>
+#include "../test_stubs/Ethernet.h"
+#if defined(_WIN32)
+#define PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP
+#endif
+#include "../PubNubDefs.h"
 
 
 unittest_setup()

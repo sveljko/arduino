@@ -1,4 +1,5 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
+#include <ArduinoUnitTests.h>
 #include "../test_stubs/Ethernet.h"
 
 #define _PubNub_arduino_stubs__h_
@@ -8,6 +9,9 @@ static String* m_DataIn;
 /* delay between received bytes in microseconds */ 
 static unsigned long m_MicrosDelay;
 
+#if defined(_WIN32)
+#define PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP
+#endif
 #define TRANSACTION_UNDER_TEST()                                           \
     do {                                                                   \
         /* Preparing input data and receiving delay conditions for transaction under test */\
@@ -15,7 +19,6 @@ static unsigned long m_MicrosDelay;
         client.mGodmodeMicrosDelay = &m_MicrosDelay;                       \
     } while (0)
 #include "../PubNubDefs.h"
-#include <ArduinoUnitTests.h>
 
 
 unittest_setup()
