@@ -1,23 +1,10 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include <ArduinoUnitTests.h>
 #include "../test_stubs/Ethernet.h"
-
-#define _PubNub_arduino_stubs__h_
-/* 'Troyan horses' used for test purposes */
-/* response from server to be read and parsed */
-static String* m_DataIn;
-/* delay between received bytes in microseconds */ 
-static unsigned long m_MicrosDelay;
-
+#define PUBNUB_UNIT_TEST
 #if defined(__CYGWIN__)
 #define PUBNUB_DEFINE_STRSPN_AND_STRNCASECMP
 #endif
-#define TRANSACTION_UNDER_TEST()                                           \
-    do {                                                                   \
-        /* Preparing input data and receiving delay conditions for transaction under test */\
-        client.mGodmodeDataIn = m_DataIn;                                  \
-        client.mGodmodeMicrosDelay = &m_MicrosDelay;                       \
-    } while (0)
 #include "../PubNubDefs.h"
 
 
@@ -48,8 +35,10 @@ unittest(PubNub_subscribe)
                     "Access-Control-Allow-Methods: GET\r\n"
                     "\r\n"
                     "[[],\"15541420302549923\"]");
-    m_DataIn = &response;
-    m_MicrosDelay = 1;
+    unsigned long delay = 1;
+    /* Preparing input data and receiving delay conditions for transaction under test */
+    PubNubObject.subscribeClient().mGodmodeDataIn = &response;
+    PubNubObject.subscribeClient().mGodmodeMicrosDelay = &delay;
     assertEqual(true, PubNubObject.begin("jet", "airliner"));
     assertEqual(PubNub::http_scc_unknown, PubNubObject.get_last_http_status_code_class());
 
@@ -123,8 +112,10 @@ unittest(PubNub_publish)
                     "Access-Control-Allow-Methods: GET\r\n"
                     "\r\n"
                     "[1,\"Sent\",\"15541724007473323\"]");
-    m_DataIn = &response;
-    m_MicrosDelay = 1;
+    unsigned long delay = 1;
+    /* Preparing input data and receiving delay conditions for transaction under test */
+    PubNubObject.publishClient().mGodmodeDataIn = &response;
+    PubNubObject.publishClient().mGodmodeMicrosDelay = &delay;
     assertEqual(true, PubNubObject.begin("jet", "airliner"));
     assertEqual(PubNub::http_scc_unknown, PubNubObject.get_last_http_status_code_class());
 
@@ -185,15 +176,17 @@ unittest(PubNub_history)
     String response("HTTP/1.1 200 OK\r\n"
                     "Date: Tue, 02 Apr 2019 02:30:31 GMT\r\n"
                     "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
-                    "Content-Length: 70\r\n"
+                    "Content-Length: 74\r\n"
                     "Connection: close\r\n"
                     "Cache-Control: no-cache\r\n"
                     "Access-Control-Allow-Origin: *\r\n"
                     "Access-Control-Allow-Methods: GET\r\n"
                     "\r\n"
-                    "[{\"rocket\":\"Saturn V\",\"mission\":\"Apolo 11\"},\"Eagle has landed\",\"1969\"]");
-    m_DataIn = &response;
-    m_MicrosDelay = 1;
+                    "[{\"rocket\":\"Saturn V\",\"mission\":\"Apolo 11\"},\"The Eagle has landed\",\"1969\"]");
+    unsigned long delay = 1;
+    /* Preparing input data and receiving delay conditions for transaction under test */
+    PubNubObject.historyClient().mGodmodeDataIn = &response;
+    PubNubObject.historyClient().mGodmodeMicrosDelay = &delay;
     assertEqual(true, PubNubObject.begin("book", "date"));
     assertEqual(PubNub::http_scc_unknown, PubNubObject.get_last_http_status_code_class());
 
@@ -208,7 +201,7 @@ unittest(PubNub_history)
     assertEqual("{\"rocket\":\"Saturn V\",\"mission\":\"Apolo 11\"}", msg.c_str());
     assertFalse(smoki.finished());
     assertEqual(0, smoki.get(msg));
-    assertEqual("\"Eagle has landed\"", msg.c_str());
+    assertEqual("\"The Eagle has landed\"", msg.c_str());
     assertFalse(smoki.finished());
     assertEqual(0, smoki.get(msg));
     assertEqual("\"1969\"", msg.c_str());

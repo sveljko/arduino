@@ -17,5 +17,5 @@ unittest:
   platforms:
 #    - uno
 #    - due
-    - zero
+#    - zero
     - leonardo

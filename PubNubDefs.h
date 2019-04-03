@@ -35,7 +35,7 @@ inline size_t strspn(const char* cs, const char* ct)
         for (p = ct; *p && *p != *cs; ++p) {
             continue;
         }
-        if (*p != '\0') {
+        if (*p == '\0') {
             break;
         }
     }
@@ -409,6 +409,11 @@ public:
         return d_last_http_status_code_class;
     }
 
+#if defined(PUBNUB_UNIT_TEST)
+    inline PubNonSubClient& publishClient() { return publish_client; }
+    inline PubNonSubClient& historyClient() { return history_client; };
+    inline PubSubClient& subscribeClient() { return subscribe_client; }
+#endif /* PUBNUB_UNIT_TEST */    
 
 private:
     enum PubNub_BH {
@@ -675,9 +680,6 @@ inline PubNonSubClient* PubNub::publish(const char* channel,
         have_param = 1;
     }
 
-#if defined(_PubNub_arduino_stubs__h_)
-    TRANSACTION_UNDER_TEST();
-#endif    
     enum PubNub::PubNub_BH ret =
         this->_request_bh(client, t_start, timeout, have_param ? '&' : '?');
     switch (ret) {
@@ -735,9 +737,7 @@ inline PubSubClient* PubNub::subscribe(const char* channel, int timeout)
         client.print(d_auth);
         have_param = 1;
     }
-#if defined(_PubNub_arduino_stubs__h_)
-    TRANSACTION_UNDER_TEST();
-#endif    
+
     enum PubNub::PubNub_BH ret =
         this->_request_bh(client, t_start, timeout, have_param ? '&' : '?');
     switch (ret) {
@@ -812,9 +812,6 @@ inline PubNonSubClient* PubNub::history(const char* channel, int limit, int time
     client.print("/0/");
     client.print(limit, DEC);
 
-#if defined(_PubNub_arduino_stubs__h_)
-    TRANSACTION_UNDER_TEST();
-#endif    
     enum PubNub::PubNub_BH ret = this->_request_bh(client, t_start, timeout, '?');
     switch (ret) {
     case PubNub_BH_OK:
