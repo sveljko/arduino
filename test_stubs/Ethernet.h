@@ -8,6 +8,10 @@
 class EthernetClient : public Client {
 public:
 	EthernetClient() { }
+/* Functions and class fields commented out are not currently used by 'pubnub' arduino
+   unit tests but, they are the original EthernetClient class members and there is a
+   possibility that some of them might become stubs in the future.
+ */
 //	EthernetClient(uint8_t s) : sockindex(s), _timeout(1000) { }
 
 	uint8_t status()

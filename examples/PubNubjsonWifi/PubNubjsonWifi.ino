@@ -26,9 +26,6 @@
   (ii) Look for other memory-saving tips in Arduino docs and various Arduino
   info sites/forums.
   
-//  created 30 May 2013
-//  by Petr Baudis
-//  https://github.com/pubnub/pubnub-api/tree/master/arduino
   This code is in the public domain.
   */
 
@@ -45,9 +42,9 @@ using namespace ArduinoJson;
 // fill in that address here, or choose your own at random:
 const static byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-static char ssid[] = "Odisej";    // your network SSID (name)
-static char pass[] = "svetidjordje"; // your network password
-//static int keyIndex = 0;               // your network key Index number (needed only for WEP)
+static char ssid[] = "ssid_name"; // your network SSID (name)
+static char pass[] = "password";  // your network password
+//static int keyIndex = 0;        // your network key Index number (needed only for WEP)
 
 const static char pubkey[] = "demo";
 const static char subkey[] = "demo";
@@ -55,8 +52,8 @@ const static char channel[] = "hello_world";
 
 void setup()
 {
-	  Serial.begin(115200);
-	  Serial.println("Serial set up");
+    Serial.begin(115200);
+    Serial.println("Serial set up");
 
 #if defined(ARDUINO_ARCH_ESP32)
     // attempt to connect using WPA2 encryption:
@@ -69,28 +66,28 @@ void setup()
         Serial.println("Connecting to WiFi..");
     }
 #else
-	  int status;
+    int status;
 
     if (WiFi.status() == WL_NO_SHIELD) {
         Serial.println("WiFi shield not present");
         while(true); // stop
     }
-	  // attempt to connect to Wifi network:
-	  do {
-		    Serial.print("WiFi connecting to SSID: ");
-		    Serial.println(ssid);
-		    // Connect to the network. Uncomment whichever line is right for you:
-		    //status = WiFi.begin(ssid); // open network
-		    //status = WiFi.begin(ssid, keyIndex, key); // WEP network
-		    status = WiFi.begin(ssid, pass); // WPA / WPA2 Personal network
- 	  } while (status != WL_CONNECTED);
+    // attempt to connect to Wifi network:
+    do {
+        Serial.print("WiFi connecting to SSID: ");
+        Serial.println(ssid);
+        // Connect to the network. Uncomment whichever line is right for you:
+        //status = WiFi.begin(ssid); // open network
+        //status = WiFi.begin(ssid, keyIndex, key); // WEP network
+        status = WiFi.begin(ssid, pass); // WPA / WPA2 Personal network
+    } while (status != WL_CONNECTED);
 #endif /* defined(ARDUINO_ARCH_ESP32) */
-	  Serial.println("WiFi set up");
+    Serial.println("WiFi set up");
     Serial.print("WL_CONNECTED=");
     Serial.println(WL_CONNECTED);
 
-	  PubNub.begin(pubkey, subkey);
-	  Serial.println("PubNub set up");
+    PubNub.begin(pubkey, subkey);
+    Serial.println("PubNub set up");
 }
 
 JsonObject createMessage(JsonDocument jd)
@@ -199,62 +196,67 @@ void loop()
     StaticJsonDocument<capacity> pubjd;
 
     Serial.println("=====================================================");
-	  /* Publish */
+    /* Publish */
     {
- 	      Serial.print("publishing a message: ");
+        Serial.print("publishing a message: ");
         char output[128];
 
         pubjd.clear();
         serializeJson(createMessage(pubjd), output);
         Serial.println(output);
 
- 	      auto client = PubNub.publish(channel, output);
-       	if (!client) {
-		        Serial.println("publishing error");
-		        delay(1000);
-		        return;
-	      }
-	      if (PubNub.get_last_http_status_code_class() != PubNub::http_scc_success) {
+        auto client = PubNub.publish(channel, output);
+        if (!client) {
+            Serial.println("publishing error");
+            delay(1000);
+            return;
+        }
+        if (PubNub.get_last_http_status_code_class() != PubNub::http_scc_success) {
             Serial.print("Got HTTP status code error from PubNub, class: ");
             Serial.print(PubNub.get_last_http_status_code_class(), DEC);
         }
         while (client->available()) {
             Serial.write(client->read());
         }
-	      client->stop();
+        client->stop();
         Serial.println("--publish--");
     }
-	  /* Subscribe and load reply */
+    /* Subscribe and load reply */
     {
         String msg;
         
-	      Serial.println("waiting for a message (subscribe)");
-	      PubSubClient* subclient = PubNub.subscribe(channel);
-	      if (!subclient) {
-		        Serial.println("subscription error");
-		        delay(1000);
-		        return;
-	      }
+        Serial.println("waiting for a message (subscribe)");
+        PubSubClient* subclient = PubNub.subscribe(channel);
+        if (!subclient) {
+            Serial.println("subscription error");
+            delay(1000);
+            return;
+        }
         if (PubNub.get_last_http_status_code_class() != PubNub::http_scc_success) {
             Serial.print("Got HTTP status code error from PubNub, class: ");
             Serial.print(PubNub.get_last_http_status_code_class(), DEC);
         }
+        /* If we don't need complex parsing we may use PubNub message crackers        
+         * Following comment showes an example of using SubscribeCracker.
+         * If this comment is uncommented 'into' the code, part using <ArduinoJson> library,
+         * behind it, should be commented 'out'.
+         */
 /*
         SubscribeCracker ritz(subclient);
 //
-        Serial.println("-------> Napravio kraker 'ritz' !");
+        Serial.println("------->Cracker 'ritz' made!");
 //
         while (!ritz.finished()) {
             ritz.get(msg);
             if (msg.length() > 0) {
 //
-                Serial.print("-------> Poruka:");
+                Serial.print("-------> Message:");
                 Serial.println(msg.c_str());
 //
             }
         }
 */
-	      /* Parse */
+        /* Parse */
         /* This is less code, but, requires "guessing" how
            many messages will there be in a response, otherwise
            the ArduinoJson buffer will not be large enough.
@@ -264,6 +266,7 @@ void loop()
         if (error) {
             Serial.print(F("deserializeJson() failed with code "));
             Serial.println(error.c_str());
+            Serial.println("--sketch stoped--");
             while(true);
         }
         dumpMessage(Serial, pubjd.as<JsonArray>());
@@ -281,5 +284,5 @@ void loop()
         subclient->stop();
         Serial.println("--subscribe--");
     }
-  	delay(10000);
+    delay(10000);
 }

@@ -30,9 +30,6 @@ unittest(PubNub_subscribe)
                     "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                     "Content-Length: 24\r\n"
                     "Connection: close\r\n"
-                    "Cache-Control: no-cache\r\n"
-                    "Access-Control-Allow-Origin: *\r\n"
-                    "Access-Control-Allow-Methods: GET\r\n"
                     "\r\n"
                     "[[],\"15541420302549923\"]");
     unsigned long delay = 1;
@@ -67,10 +64,7 @@ unittest(PubNub_subscribe)
                       "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                       "Content-Length: 88\r\n"
                       "Connection: close\r\n"
-                      "Cache-Control: no-cache\r\n"
-                      "Access-Control-Allow-Origin: *\r\n"
-                      "Access-Control-Allow-Methods: GET\r\n"
-                      "\r\n"
+                       "\r\n"
                       "[[{\"latitud\":17.05,\"longitud\":61.50,\"country\":\"Antigua & Barbuda\"}],\"15541618056552715\"]");
     PubNubObject.set_uuid("xyzxyzxy-xxxx-4444-9999-xxxxxxxxxxxx");
     PubNubObject.set_auth("caribean");
@@ -107,10 +101,7 @@ unittest(PubNub_publish)
                     "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                     "Content-Length: 30\r\n"
                     "Connection: close\r\n"
-                    "Cache-Control: no-cache\r\n"
-                    "Access-Control-Allow-Origin: *\r\n"
-                    "Access-Control-Allow-Methods: GET\r\n"
-                    "\r\n"
+                     "\r\n"
                     "[1,\"Sent\",\"15541724007473323\"]");
     unsigned long delay = 1;
     /* Preparing input data and receiving delay conditions for transaction under test */
@@ -142,9 +133,6 @@ unittest(PubNub_publish)
                       "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                       "Content-Length: 60\r\n"
                       "Connection: close\r\n"
-                      "Cache-Control: no-cache\r\n"
-                      "Access-Control-Allow-Origin: *\r\n"
-                      "Access-Control-Allow-Methods: GET\r\n"
                       "\r\n"
                       "[0,\"Account quota exceeded (2/1000000)\",\"15541733686301100\"]");
     PubNubObject.set_uuid("abcdefgh-xxxx-3333-8888-oooooooooooo");
@@ -178,9 +166,6 @@ unittest(PubNub_history)
                     "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                     "Content-Length: 74\r\n"
                     "Connection: close\r\n"
-                    "Cache-Control: no-cache\r\n"
-                    "Access-Control-Allow-Origin: *\r\n"
-                    "Access-Control-Allow-Methods: GET\r\n"
                     "\r\n"
                     "[{\"rocket\":\"Saturn V\",\"mission\":\"Apolo 11\"},\"The Eagle has landed\",\"1969\"]");
     unsigned long delay = 1;
@@ -221,9 +206,6 @@ unittest(PubNub_history)
                       "Content-Type: text/javascript; charset=\"UTF-8\"\r\n"
                       "Content-Length: 40\r\n"
                       "Connection: close\r\n"
-                      "Cache-Control: no-cache\r\n"
-                      "Access-Control-Allow-Origin: *\r\n"
-                      "Access-Control-Allow-Methods: GET\r\n"
                       "\r\n"
                       "[\"radio\",{\"materials\":\"semiconductors\"}]");
     PubNubObject.set_uuid("bright-smile-5555-7777-oooooooooooo");
