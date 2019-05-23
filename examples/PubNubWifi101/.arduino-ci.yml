@@ -3,7 +3,7 @@ compile:
   platforms:
     - uno
     - due
-    - zero
+#    - zero
 #    - leonardo
 #    - m4
 #    - esp32
