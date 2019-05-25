@@ -235,14 +235,6 @@ To enable debugg logging to the Arduino console, add
 
 before `#include <PubNub.h>`
 
-### Debug logging
-
-To enable debugg logging to the Arduino console, add
-
-	#define PUBNUB_DEBUG
-
-before `#include <PubNub.h>`
-
 ## Installation
 
 Since version 1.1.1, Pubnub SDK is part of the Arduino Library
